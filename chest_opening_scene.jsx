@@ -1,12 +1,27 @@
 // After Effects Script: Chest Opening Scene
 // Resolution: 1080x1920, 30fps, 5 seconds duration
 // Modern styling with dynamic geometric effects
+// Enhanced with error handling and performance optimizations
 
 (function() {
-    // Create new composition
-    var comp = app.project.items.addComp("Chest Opening Scene", 1080, 1920, 1, 5, 30);
+    // Error handling wrapper
+    try {
+        // Check if After Effects is running
+        if (!app.project) {
+            throw new Error("No After Effects project is open. Please create or open a project first.");
+        }
+        
+        // Create new composition with error handling
+        var comp = app.project.items.addComp("Chest Opening Scene", 1080, 1920, 1, 5, 30);
+        
+        if (!comp) {
+            throw new Error("Failed to create composition. Please check your After Effects version compatibility.");
+        }
+        
+        // Start undo group for better performance
+        app.beginUndoGroup("Create Chest Opening Scene");
     
-    // Set composition settings
+        // Set composition settings
     comp.bgColor = [0.05, 0.05, 0.1]; // Dark blue background
     
     // Create main solid layer for base
@@ -66,18 +81,27 @@
     var particleEffect = particleLayer.Effects.addProperty("ADBE CC Particle World");
     var particles = particleEffect.property("ADBE CC Particle World");
     
-    // Configure particle system
-    particles.property("ADBE CC Particle World Birth Rate").setValue(2);
-    particles.property("ADBE CC Particle World Longevity").setValue(3);
-    particles.property("ADBE CC Particle World Velocity").setValue(0.5);
-    particles.property("ADBE CC Particle World Gravity").setValue(-0.2); // Upward motion
+    // Configure particle system with enhanced settings
+    particles.property("ADBE CC Particle World Birth Rate").setValue(3); // Increased for more dramatic effect
+    particles.property("ADBE CC Particle World Longevity").setValue(4); // Longer particle life
+    particles.property("ADBE CC Particle World Velocity").setValue(0.8); // More dynamic movement
+    particles.property("ADBE CC Particle World Gravity").setValue(-0.3); // Stronger upward motion
     particles.property("ADBE CC Particle World Particle Type").setValue(4); // Faded Sphere
-    particles.property("ADBE CC Particle World Birth Size").setValue(0.3);
-    particles.property("ADBE CC Particle World Death Size").setValue(0.1);
+    particles.property("ADBE CC Particle World Birth Size").setValue(0.4); // Slightly larger particles
+    particles.property("ADBE CC Particle World Death Size").setValue(0.05); // Smaller fade out
     
     // Set particle color to gold
     particles.property("ADBE CC Particle World Birth Color").setValue([1, 0.84, 0]);
     particles.property("ADBE CC Particle World Death Color").setValue([1, 0.9, 0.3]);
+    
+    // Add glow effect to particles for enhanced cinematic look
+    var glowEffect = particleLayer.Effects.addProperty("ADBE Glow");
+    var glow = glowEffect.property("ADBE Glow");
+    glow.property("ADBE Glow Intensity").setValue(2);
+    glow.property("ADBE Glow Radius").setValue(20);
+    glow.property("ADBE Glow Colors").setValue(1); // A & B Colors
+    glow.property("ADBE Glow Color A").setValue([1, 0.84, 0]);
+    glow.property("ADBE Glow Color B").setValue([1, 0.9, 0.3]);
     
     // Animate particle system timing
     particleLayer.inPoint = 0.5;
@@ -98,6 +122,14 @@
     
     titleText.setValue(titleTextDoc);
     
+    // Add drop shadow effect to title
+    var titleShadowEffect = titleLayer.Effects.addProperty("ADBE Drop Shadow");
+    var titleShadow = titleShadowEffect.property("ADBE Drop Shadow");
+    titleShadow.property("ADBE Drop Shadow Distance").setValue(8);
+    titleShadow.property("ADBE Drop Shadow Softness").setValue(15);
+    titleShadow.property("ADBE Drop Shadow Opacity").setValue(80);
+    titleShadow.property("ADBE Drop Shadow Color").setValue([0, 0, 0]);
+    
     // Position title at top center (safe zone)
     titleLayer.transform.position.setValue([540, 200]);
     
@@ -108,6 +140,12 @@
     
     // Add elastic ease
     titlePosition.setTemporalEaseAtKey(0.5, [new KeyframeEase(0, 33.33), new KeyframeEase(0, 33.33)]);
+    
+    // Add subtle rotation animation for dynamic effect
+    var titleRotation = titleLayer.transform.rotation;
+    titleRotation.setValueAtTime(0, 5); // Start slightly rotated
+    titleRotation.setValueAtTime(0.5, 0); // End at normal rotation
+    titleRotation.setTemporalEaseAtKey(0.5, [new KeyframeEase(0, 33.33), new KeyframeEase(0, 33.33)]);
     
     // Create subtitle layer
     var subtitleLayer = comp.layers.addText("One Choice • One Chest");
@@ -183,18 +221,23 @@
     var camera = comp.layers.addCamera("Cinematic Camera", [540, 960]);
     var cameraPosition = camera.transform.position;
     
-    // Add subtle shake animation
-    for (var i = 0; i <= 150; i++) {
-        var time = i / 30; // 30fps
-        var shakeX = Math.sin(time * 20) * 2;
-        var shakeY = Math.cos(time * 15) * 1.5;
-        cameraPosition.setValueAtTime(time, [540 + shakeX, 960 + shakeY, -1000]);
-    }
+    // Add subtle shake animation (optimized with expression)
+    cameraPosition.setValue([540, 960, -1000]);
+    
+    // Add wiggle expression for more efficient camera shake
+    var shakeExpression = "wiggle(0.5, 3) + [540, 960, -1000]";
+    cameraPosition.expression = shakeExpression;
     
     // Set composition to active
     app.project.activeItem = comp;
     
-    // Alert completion
-    alert("Chest Opening Scene created successfully!\n\nComposition: " + comp.name + "\nResolution: 1080x1920\nDuration: 5 seconds\nFrame Rate: 30fps\n\nAll effects and animations have been applied with modern styling.");
+        // Alert completion
+        alert("Chest Opening Scene created successfully!\n\nComposition: " + comp.name + "\nResolution: 1080x1920\nDuration: 5 seconds\nFrame Rate: 30fps\n\nAll effects and animations have been applied with modern styling.");
+        
+    } catch (error) {
+        // Error handling
+        alert("Error creating Chest Opening Scene:\n\n" + error.message + "\n\nPlease check your After Effects version and try again.");
+        app.endUndoGroup();
+    }
     
 })();
